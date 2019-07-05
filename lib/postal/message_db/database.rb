@@ -142,6 +142,7 @@ module Postal
         if options[:count]
           sql_query << " COUNT(id) AS count"
         elsif options[:fields]
+          sql_query << " DISTINCT" if options[:distinct]
           sql_query << " " + options[:fields].map { |f| "`#{f}`" }.join(', ')
         else
           sql_query << " *"

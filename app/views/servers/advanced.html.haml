@@ -15,6 +15,11 @@
             = f.text_field :send_limit, :class => 'input input--text', :placeholder => "No limit"
             %p.fieldSet__text This is the maximum number of e-mails that can be sent through this mail server in a 60 minute period.
         .fieldSet__field
+          = f.label :recipients_limit, :class => 'fieldSet__label'
+          .fieldSet__input
+            = f.text_field :recipients_limit, :class => 'input input--text', :placeholder => "No limit"
+            %p.fieldSet__text This is the maximum number of unique recipients that this mail server can send e-mails to. Only retained messages' recipients are counted.
+        .fieldSet__field
           = f.label :allow_sender, "Allow sender header", :class => 'fieldSet__label'
           .fieldSet__input
             = f.select :allow_sender, [["No", false], ["Yes - can use Sender header", true]], {}, :class => 'input input--select'

@@ -1,0 +1,17 @@
+We're writing to let you know that your <%= @server.name %> mail server is approaching its recipients limit. All mail servers have a limit of how many unique recipients they are permitted to send e-mails to based on their retained messages.
+
+Orgaization: <%= @server.organization.name %>
+Server: <%= @server.name %>
+Recipients Limit: <%= @server.recipients_limit %>
+Retained Messages' Recipients: <%= @server.unique_recipients.size %>
+
+When you reach your limit, any mail you send to new recipients will be held in the system until it is manually unheld by you through the web interface or using the API.
+
+You can view more information about this server at:
+
+<%= Postal.host_with_protocol %>/org/<%= @server.organization.permalink %>/servers/<%= @server.permalink %>
+
+Thanks,
+
+<%= Postal.smtp_from_name %>
+<%= Postal.smtp_from_address %>

@@ -46,6 +46,7 @@ Rails.application.routes.draw do
         get 'history/:uuid', :on => :collection, :action => 'history_request', :as => 'history_request'
       end
       get :limits, :on => :member
+      get :recipients_limit, :on => :member
       get :retention, :on => :member
       get :queue, :on => :member
       get :spam, :on => :member

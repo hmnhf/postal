@@ -71,6 +71,7 @@ class Server < ApplicationRecord
   default_value :message_retention_days, -> { 60 }
   default_value :spam_threshold, -> { 5.0 }
   default_value :spam_failure_threshold, -> { 20.0 }
+  default_value :recipients_limit, -> { 500 }
 
   validates :name, :presence => true, :uniqueness => {:scope => :organization_id}
   validates :mode, :inclusion => {:in => MODES}
@@ -201,10 +202,29 @@ class Server < ApplicationRecord
     self.send_limit && send_volume >= self.send_limit
   end
 
+  def unique_recipients
+    @unique_recipients ||= message_db.messages(fields: ['rcpt_to'], distinct: true).map(&:rcpt_to)
+  end
+
+  def recipients_limit_approaching?
+    self.recipients_limit && (unique_recipients.size >= self.recipients_limit * 0.90)
+  end
+
+  def recipients_limit_exceeded?(rcpt_to)
+    return false unless self.recipients_limit && unique_recipients.size >= self.recipients_limit
+    !unique_recipients.first(self.recipients_limit).include?(rcpt_to)
+  end
+
   def send_limit_warning(type)
     AppMailer.send("server_send_limit_#{type}", self).deliver
     self.update_column("send_limit_#{type}_notified_at", Time.now)
     WebhookRequest.trigger(self, "SendLimit#{type.to_s.capitalize}", :server => webhook_hash, :volume => self.send_volume, :limit => self.send_limit)
+  end
+
+  def send_recipients_limit_warning(type)
+    AppMailer.send("server_recipients_limit_#{type}", self).deliver
+    self.update_column("recipients_limit_#{type}_notified_at", Time.now)
+    # Note: Webhooks aren't implemented for this yet.
   end
 
   def queue_size
@@ -306,6 +326,24 @@ class Server < ApplicationRecord
         servers.each do |server|
           hash[type] += 1
           server.send_limit_warning(type)
+        end
+      end
+    end
+  end
+
+  def self.triggered_recipients_limit(type)
+    servers = where("recipients_limit_#{type}_at IS NOT NULL AND recipients_limit_#{type}_at > ?", 3.minutes.ago)
+    servers.where("recipients_limit_#{type}_notified_at IS NULL OR recipients_limit_#{type}_notified_at < ?", 1.hour.ago)
+  end
+
+  def self.send_recipients_limit_notifications
+    [:approaching, :exceeded].each_with_object({}) do |type, hash|
+      hash[type] = 0
+      servers = self.triggered_recipients_limit(type)
+      unless servers.empty?
+        servers.each do |server|
+          hash[type] += 1
+          server.send_recipients_limit_warning(type)
         end
       end
     end

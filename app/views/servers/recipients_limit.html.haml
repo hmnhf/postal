@@ -1,0 +1,35 @@
+- page_title << @server.name
+- page_title << "Recipients Limits"
+= render 'sidebar', :active_server => @server
+= render 'header', :active_nav => :settings
+= render 'settings_header', :active_nav => :recipients_limit
+.pageContent.pageContent--compact
+
+  %p.pageContent__intro.u-margin
+    In order to protect our reputation and ensure the resiliency of our service,
+    we have a limit on the number of unique recipients that your mail server can send e-mails to.
+  %p.pageContent__text.u-margin
+    Your server can only send e-mails to a certain number of unique recipients.
+    Only retained messages' recipients are counted.
+
+    The current limit is shown below.
+
+  %ul.limits.u-margin
+    %li.limits__limit
+      %p.limits__value
+        - if @server.recipients_limit
+          = number_with_delimiter @server.recipients_limit
+        - else
+          unlimited
+      %p.limits__frequency
+        unique recipients every
+        = @server.message_retention_days
+        days*
+
+  %p.pageContent__subTitle What happens if I reach the limit?
+  %p.pageContent__text
+    If you reach your recipients limit, any e-mails sent to new recipients will be held and
+    will need to be released manually when your usage has dropped.
+
+  %p.pageContent__text
+    You will be notified by e-mail when you are approaching and/or exceeding your limits.

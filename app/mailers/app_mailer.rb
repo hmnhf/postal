@@ -39,6 +39,16 @@ class AppMailer < ApplicationMailer
     mail :to => @server.organization.notification_addresses, :subject => "[#{server.full_permalink}] Mail server has exceeded its send limit"
   end
 
+  def server_recipients_limit_approaching(server)
+    @server = server
+    mail :to => @server.organization.notification_addresses, :subject => "[#{server.full_permalink}] Mail server is approaching its recipients limit"
+  end
+
+  def server_recipients_limit_exceeded(server)
+    @server = server
+    mail :to => @server.organization.notification_addresses, :subject => "[#{server.full_permalink}] Mail server has exceeded its recipients limit"
+  end
+
   def server_suspended(server)
     @server = server
     mail :to => @server.organization.notification_addresses, :subject => "[#{server.full_permalink}] Your mail server has been suspended"

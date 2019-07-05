@@ -1,0 +1,19 @@
+We're writing to let you know that your <%= @server.name %> mail server has exceeded its recipients limit. All mail servers have a limit of how many unique recipients they are permitted to send e-mails to based on their retained messages.
+
+At present you have sent e-mails to <%= @server.unique_recipients.size %> unique recipients and have a limit of <%= @server.recipients_limit %>.
+
+Orgaization: <%= @server.organization.name %>
+Server: <%= @server.name %>
+Recipients Limit: <%= @server.recipients_limit %>
+Retained Messages' Recipients: <%= @server.unique_recipients.size %>
+
+All messages that you send to new recipients will now be held in the system until the number of unique recipients in retained messages gets decreased. Afterwards, you will need to manually release any of these messages that you wish to send. You can do this through the web interface or using the API.
+
+You can view more information about this server at:
+
+<%= Postal.host_with_protocol %>/org/<%= @server.organization.permalink %>/servers/<%= @server.permalink %>
+
+Thanks,
+
+<%= Postal.smtp_from_name %>
+<%= Postal.smtp_from_address %>

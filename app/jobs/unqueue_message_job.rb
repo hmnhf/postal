@@ -359,6 +359,21 @@ class UnqueueMessageJob < Postal::Job
                 queued_message.server.update_columns(:send_limit_approaching_at => nil, :send_limit_exceeded_at => nil)
               end
 
+              # Check recipients limits
+              if queued_message.server.recipients_limit_exceeded?(queued_message.message.rcpt_to)
+                # If we're over the limit, we're going to be holding this message.
+                queued_message.server.update_columns(:recipients_limit_exceeded_at => Time.now, :recipients_limit_approaching_at => nil)
+                queued_message.message.create_delivery('Held', :details => "Message held because unique recipients limit (#{queued_message.server.recipients_limit}) has been reached.")
+                queued_message.destroy
+                log "#{log_prefix} Server unique recipients limit has been exceeded. Holding."
+                next
+              elsif queued_message.server.recipients_limit_approaching?
+                # If we're approaching the limit, just say we are but continue to process the message.
+                queued_message.server.update_columns(:recipients_limit_approaching_at => Time.now, :recipients_limit_exceeded_at => nil)
+              else
+                queued_message.server.update_columns(:recipients_limit_approaching_at => nil, :recipients_limit_exceeded_at => nil)
+              end
+
               # Update the live stats for this message.
               queued_message.message.database.live_stats.increment(queued_message.message.scope)
 
